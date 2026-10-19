@@ -1,0 +1,12 @@
+{
+ "vaccine_schedule": "The program gives the first measles dose at 9 months of age. The second measles dose is given at 16 months. Children missing a dose are recorded as defaulters.",
+ "home_visits": "Each community health worker must complete 20 home visits per month. Visits are logged in the mobile app on the day they happen. A visit shorter than 10 minutes is flagged for review.",
+ "supervision": "Supervisors review flagged visits every Friday. Each supervisor oversees 15 health workers. Supervisors escalate repeated flags to the district coordinator.",
+ "data_sync": "The mobile app syncs data to the server when internet is available. Unsynced records are kept on the device for up to 30 days. After 30 days unsynced records are deleted to protect device storage.",
+ "incentives": "Workers receive a monthly incentive when they reach 90 percent of the visit target. Incentives are paid by the 10th of the following month. Late data entry above 3 days delays the incentive.",
+ "anc_care": "Pregnant women should receive at least 4 antenatal care visits. The first antenatal visit should happen before 12 weeks of pregnancy. High risk pregnancies are referred to the district hospital.",
+ "training": "New workers complete a 5 day induction training. Refresher training happens every 6 months. Training attendance is recorded by the supervisor.",
+ "dashboard": "The dashboard refreshes every night at 2 AM. District coordinators see completion rate and defaulter counts. Data older than 24 hours is marked stale.",
+ "privacy": "Beneficiary names are never shown on district dashboards. Only supervisors can view household level records. Exports must be approved by the data lead.",
+ "stock": "Vitamin A supplements are restocked every quarter. A health centre reports stock out when fewer than 50 doses remain. The district store dispatches within 7 days of a stock out report."
+}

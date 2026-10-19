@@ -1,0 +1,21 @@
+{"question": "When is the first measles dose given?", "gold_docs": ["vaccine_schedule"], "must_contain": ["9 months"]}
+{"question": "At what age is the second measles dose given?", "gold_docs": ["vaccine_schedule"], "must_contain": ["16 months"]}
+{"question": "How many home visits must a health worker complete each month?", "gold_docs": ["home_visits"], "must_contain": ["20"]}
+{"question": "What happens to a visit shorter than 10 minutes?", "gold_docs": ["home_visits"], "must_contain": ["flagged"]}
+{"question": "How often do supervisors review flagged visits?", "gold_docs": ["supervision"], "must_contain": ["Friday"]}
+{"question": "How many health workers does each supervisor oversee?", "gold_docs": ["supervision"], "must_contain": ["15"]}
+{"question": "How long are unsynced records kept on the device?", "gold_docs": ["data_sync"], "must_contain": ["30 days"]}
+{"question": "When are incentives paid?", "gold_docs": ["incentives"], "must_contain": ["10th"]}
+{"question": "How many antenatal care visits should pregnant women receive?", "gold_docs": ["anc_care"], "must_contain": ["4"]}
+{"question": "How long is the induction training for new workers?", "gold_docs": ["training"], "must_contain": ["5 day"]}
+{"question": "At what time does the dashboard refresh?", "gold_docs": ["dashboard"], "must_contain": ["2 AM"]}
+{"question": "Who must approve data exports?", "gold_docs": ["privacy"], "must_contain": ["data lead"]}
+{"question": "When is a stock out reported for Vitamin A?", "gold_docs": ["stock"], "must_contain": ["50 doses"]}
+{"question": "What is the capital of France?", "gold_docs": [], "must_contain": []}
+{"question": "What is the salary of the district coordinator?", "gold_docs": [], "must_contain": []}
+{"question": "How often is refresher training held?", "gold_docs": ["training"], "must_contain": ["6 months"]}
+{"question": "Which role looks at household level records?", "gold_docs": ["privacy"], "must_contain": ["supervisors"]}
+{"question": "Within how many days does the district store send supplies after a stock out?", "gold_docs": ["stock"], "must_contain": ["7 days"]}
+{"question": "When should a woman's first antenatal visit happen?", "gold_docs": ["anc_care"], "must_contain": ["12 weeks"]}
+{"question": "Why are old unsynced records removed from phones?", "gold_docs": ["data_sync"], "must_contain": ["storage"]}
+{"question": "How is the weather in the district today?", "gold_docs": [], "must_contain": []}
