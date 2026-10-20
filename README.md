@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/poojabhather99/rag-eval-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/poojabhather99/rag-eval-harness/actions/workflows/ci.yml)
 
+**Live demo (runs in your browser):** https://poojabhather99.github.io/rag-eval-harness/
+
 A small, dependency-free harness for measuring a RAG pipeline end to end: **retrieval quality, answer accuracy, faithfulness to cited sources, and whether the system abstains when the documents don't contain the answer.** It runs offline and is deterministic, so it works as a regression test in CI.
 
 It complements [bot-gpt](https://github.com/poojabhather99/bot-gpt): bot-gpt is the RAG application, this repo is how you would measure changes to one.

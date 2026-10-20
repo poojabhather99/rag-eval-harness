@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG Eval Harness demo</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="Ask a question over ten short documents, see what each retriever finds and whether the answerer cites a source or abstains, then run the full evaluation.">
+<style>
+:root{--bg:#fafaf8;--fg:#1c1c1a;--mut:#6b6b66;--card:#fff;--line:#e3e2dc;--acc:#1f6f5c;--accfg:#fff;--bad:#a8321f;--ok:#1f6f5c;--code:#f2f1ec}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe5;--mut:#a09f98;--card:#1d1d1b;--line:#33332f;--acc:#4cb89d;--accfg:#10201b;--bad:#ef8a75;--ok:#4cb89d;--code:#242421}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:1.7rem;margin:0 0 6px}
+h2{font-size:1.05rem;margin:28px 0 10px}
+p.lead{color:var(--mut);margin:0 0 14px}
+a{color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+label{display:block;font-size:.85rem;color:var(--mut);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+textarea{min-height:110px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem}
+button{background:var(--acc);color:var(--accfg);border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;margin:8px 8px 0 0}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+button:disabled{opacity:.5;cursor:wait}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 180px}
+pre{background:var(--code);padding:10px 12px;border-radius:8px;overflow:auto;font-size:.82rem;white-space:pre-wrap;word-break:break-word;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.tag{margin-left:8px;display:inline-block;padding:1px 8px;border-radius:99px;font-size:.78rem;border:1px solid var(--line)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.mut{color:var(--mut)}
+#status{font-size:.9rem;color:var(--mut);margin:8px 0}
+.bubble{padding:8px 12px;border-radius:12px;margin:6px 0;max-width:92%;white-space:pre-wrap;border:1px solid var(--line)}
+.me{margin-left:auto;background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+footer{margin-top:36px;color:var(--mut);font-size:.88rem}
+</style>
+</head>
+<body>
+<main>
+<h1>RAG evaluation harness</h1>
+<p class="lead">Ask a question over ten short documents, see what each retriever finds and whether the answerer cites a source or abstains, then run the full evaluation.</p>
+<p class="mut" style="font-size:.9rem">This page runs the project's actual Python source in your browser (via Pyodide). Nothing is sent to a server. <a href="https://github.com/poojabhather99/rag-eval-harness">View the code on GitHub</a>.</p>
+<div id="status">Loading Python (first visit can take 10 to 20 seconds)...</div>
+<div id="app" hidden>
+
+<div class="card">
+<label for="qsel">Sample question</label><select id="qsel"></select>
+<label for="q">...or type your own</label><input id="q" placeholder="e.g. How often do supervisors review flagged visits?">
+<div class="row"><div><label for="ret">Retriever</label><select id="ret"><option value="bm25">BM25</option><option value="overlap">Term overlap</option></select></div>
+<div><label for="k">Top k</label><select id="k"><option>1</option><option selected>3</option><option>5</option></select></div></div>
+<button id="ask">Ask</button>
+<div id="out"></div>
+</div>
+<h2>Full evaluation</h2>
+<div class="card"><button id="run" class="alt">Run evaluation on all 21 questions</button><div id="evalout"></div></div>
+<h2>The corpus</h2><div class="card"><div id="docs"></div></div>
+
+</div>
+<footer>Try a question the documents can't answer, such as "What is the salary of the district coordinator?" The answerer returns a related sentence instead of abstaining. That is a real failure, documented in the README, not a bug in this page.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+const FILES = ["src/rageval/__init__.py", "src/rageval/text.py", "src/rageval/retrieval.py", "src/rageval/answer.py", "src/rageval/metrics.py", "src/rageval/evaluate.py", "evals/corpus.json", "evals/questions.jsonl"];
+const PACKAGES = [];
+const PY = String.raw`
+import json
+from rageval.evaluate import load, evaluate
+from rageval.retrieval import BM25, Overlap
+from rageval.answer import answer
+DOCS, QS = load()
+def questions():
+    return json.dumps([q["question"] for q in QS])
+def docs():
+    return json.dumps(DOCS)
+def ask(q, name, k):
+    r = (BM25 if name == "bm25" else Overlap)(DOCS)
+    hits = r.search(q, int(k))
+    a = answer(q, hits, DOCS)
+    return json.dumps({"hits": [{"id": d, "score": round(s, 3), "text": DOCS[d]} for d, s in hits],
+                       "answer": a.text, "citations": a.citations, "abstained": a.abstained})
+def run_eval(k):
+    return json.dumps([evaluate(c, int(k)) for c in (Overlap, BM25)])
+`;
+const $ = (id) => document.getElementById(id);
+const el = (tag, text, cls) => { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; };
+let py;
+async function boot() {
+  try {
+    py = await loadPyodide();
+    if (PACKAGES.length) { $('status').textContent = 'Loading ' + PACKAGES.join(', ') + '...'; await py.loadPackage(PACKAGES); }
+    const base = new URL('.', location.href).href;
+    for (const f of FILES) {
+      const r = await fetch(base + f);
+      if (!r.ok) throw new Error('could not load ' + f + ' (' + r.status + ')');
+      py.FS.mkdirTree('/app/' + f.split('/').slice(0, -1).join('/'));
+      py.FS.writeFile('/app/' + f, await r.text());
+    }
+    py.runPython("import sys; sys.path.insert(0, '/app/src')");
+    py.runPython(PY);
+    $('status').remove(); $('app').hidden = false;
+    init();
+  } catch (e) { $('status').textContent = 'Could not start the demo: ' + e.message; $('status').className = 'bad'; }
+}
+const call = (fn, ...args) => JSON.parse(py.globals.get(fn)(...args));
+
+function init() {
+  const qs = call('questions');
+  qs.forEach((q) => { const o = el('option', q); o.value = q; $('qsel').append(o); });
+  $('q').value = qs[0];
+  $('qsel').onchange = () => { $('q').value = $('qsel').value; };
+  const docs = call('docs');
+  for (const [id, text] of Object.entries(docs)) { const d = el('div'); d.append(el('strong', id + ': '), document.createTextNode(text)); d.style.margin = '6px 0'; $('docs').append(d); }
+  $('ask').onclick = () => {
+    const r = call('ask', $('q').value, $('ret').value, $('k').value);
+    const out = $('out'); out.replaceChildren();
+    out.append(el('h2', 'Retrieved'));
+    if (!r.hits.length) out.append(el('p', 'No document shares any content words with the question.', 'mut'));
+    r.hits.forEach((h, i) => { const d = el('div', undefined, 'card'); d.append(el('strong', (i + 1) + '. ' + h.id + '  '), el('span', 'score ' + h.score, 'tag'), el('p', h.text)); out.append(d); });
+    out.append(el('h2', 'Answer'));
+    const a = el('div', undefined, 'card');
+    a.append(el('p', r.answer, r.abstained ? 'bad' : 'ok'));
+    a.append(el('span', r.abstained ? 'abstained' : 'cited: ' + r.citations.join(', '), 'tag'));
+    out.append(a);
+  };
+  $('run').onclick = () => {
+    const rows = call('run_eval', $('k').value);
+    const t = el('table'); const keys = ['retriever', 'k', 'answerable', 'unanswerable'].concat(Object.keys(rows[0]).filter((x) => /hit@|mrr|accuracy|faithfulness/.test(x)));
+    const h = el('tr'); keys.forEach((k) => h.append(el('th', k))); t.append(h);
+    rows.forEach((r) => { const tr = el('tr'); keys.forEach((k) => tr.append(el('td', String(r[k])))); t.append(tr); });
+    $('evalout').replaceChildren(t);
+  };
+  $('ask').click();
+}
+
+boot();
+</script>
+</body>
+</html>
